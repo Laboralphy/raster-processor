@@ -4,8 +4,8 @@ import ArrayHelper from 'libs/array-helper'
 const PALETTE = Rainbow
     .gradient({
         0: '#111',
-        12: '#333',
-        24: '#222',
+        16: '#333',
+        32: '#222',
         64: '#F00',
         128: '#FF0',
         220: '#FFF',
@@ -78,7 +78,7 @@ export function main (pixelContext, frameContext) {
     const fc = frameContext
     const { getPixel, setPixel } = fc
     const { x, y, color } = pixelContext
-    const pixBottom = getPixel(x, y - 1)
+    const pixBottom = getPixel(x, y + 1)
     const pixLeft = getPixel(x - 1, y)
     const pixSelf = getPixel(x, y)
     const pixRight = getPixel(x + 1, y)

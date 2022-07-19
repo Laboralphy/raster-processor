@@ -20,10 +20,6 @@ function computeFrame (oCanvas, p, time) {
 
 function runProgram (f, duration, interval) {
     const oScreenCanvas = document.getElementById('canvas')
-    const oScreenContext = oScreenCanvas.getContext('2d')
-    const oOffCanvas = document.createElement('canvas')
-    oOffCanvas.width = oScreenCanvas.width
-    oOffCanvas.height = oScreenCanvas.height
     const oFPS = document.getElementById('fps')
     return new Promise(resolve => {
         const oProgress = document.getElementById('progress')
@@ -31,14 +27,13 @@ function runProgram (f, duration, interval) {
         oProgress.setAttribute('max', duration.toString())
         oProgress.setAttribute('value', '0')
         let time = 0
-        const oContext = oOffCanvas.getContext('2d')
+        const oContext = oScreenCanvas.getContext('2d')
         oContext.imageSmoothingEnabled = false
         const aPerfs = []
         const t = setInterval(() => {
             const t1 = performance.now()
             oProgress.setAttribute('value', time.toString())
-            computeFrame(oOffCanvas, f, time)
-            oScreenContext.drawImage(oOffCanvas, 0, 0)
+            computeFrame(oScreenCanvas, f, time)
             time++
             if (time > duration) {
                 clearInterval(t)
