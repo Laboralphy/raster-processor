@@ -5,48 +5,31 @@
 
 import PixelProcessor from '@laboralphy/pixel-processor'
 import cfg from './config'
+import FPSMeter from "libs/fps-meter";
 
 const oAnimContext = {
 }
-
 
 function computeFrame (oCanvas, p, time) {
     const { init = function () {}, main } = p
     oAnimContext.time = time
     oAnimContext.canvas = oCanvas
     init(oAnimContext)
-    PixelProcessor.paint(oCanvas, pc => main(pc, oAnimContext))
+    PixelProcessor.fastPaint(oCanvas, pc => main(pc, oAnimContext))
 }
 
 function runProgram (f, duration, interval) {
     const oScreenCanvas = document.getElementById('canvas')
     const oFPS = document.getElementById('fps')
-    return new Promise(resolve => {
-        const oProgress = document.getElementById('progress')
-        oProgress.setAttribute('min', '0')
-        oProgress.setAttribute('max', duration.toString())
-        oProgress.setAttribute('value', '0')
-        let time = 0
-        const oContext = oScreenCanvas.getContext('2d')
-        oContext.imageSmoothingEnabled = false
-        const aPerfs = []
-        const t = setInterval(() => {
-            const t1 = performance.now()
-            oProgress.setAttribute('value', time.toString())
-            computeFrame(oScreenCanvas, f, time)
-            time++
-            if (time > duration) {
-                clearInterval(t)
-                resolve()
-            }
-            const t2 = performance.now()
-            aPerfs.push(t2 - t1)
-            while (aPerfs.length > 10) {
-                aPerfs.shift()
-            }
-            oFPS.childNodes[0].textContent = (Math.round(1000 / (aPerfs.reduce((prev, x) => prev + x, 0) / aPerfs.length))).toString()
-        }, interval)
-    })
+    const oFPSOutput = oFPS.childNodes[0]
+    let time = 0
+    const fpsm = new FPSMeter()
+    setInterval(() => {
+        fpsm.start()
+        computeFrame(oScreenCanvas, f, time)
+        fpsm.stop()
+        oFPSOutput.textContent = fpsm.fps.toString()
+    }, interval)
 }
 
 function getProgramKey (sSearch) {
@@ -88,28 +71,17 @@ function writeProgramList () {
     })
 }
 
-function assignShortcuts (prog, frames, fps) {
-    const createURL = (f, i) => {
-        return location.protocol + '//' + location.host + '?prog=' + prog + '&frames=' + f + '&fps=' + i
-    }
-    document.getElementById('frame_less').addEventListener('click', () => location.href = createURL(Math.max(50, Math.floor(frames * 0.75)), fps))
-    document.getElementById('frame_more').addEventListener('click', () => location.href = createURL(Math.max(50, Math.floor(frames * 1.25)), fps))
-    document.getElementById('fps_less').addEventListener('click', () => location.href = createURL(frames, Math.max(10, Math.floor(fps * 0.75))))
-    document.getElementById('fps_more').addEventListener('click', () => location.href = createURL(frames, Math.max(10, Math.floor(fps * 1.25))))
-}
-
 async function main () {
-    const { prog = '', frames = 1000, fps = 30 } = parseParams(location.search)
-    assignShortcuts(prog, frames, fps)
+    const { prog = '' } = parseParams(location.search)
+    const frames = 1000
+    const fps = 30
     if (!prog) {
         writeProgramList()
     } else {
         const nInterval = Math.round(1000 / fps)
         const sKey = getProgramKey(prog)
         if (sKey) {
-            console.info('running program', sKey, 'frames', frames, 'interval', nInterval)
-            await runProgram(cfg[sKey], frames, nInterval)
-            console.info('done')
+            runProgram(cfg[sKey], frames, nInterval)
         }
     }
 }
