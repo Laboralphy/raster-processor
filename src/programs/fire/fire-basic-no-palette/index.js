@@ -3,11 +3,11 @@ import VirtualPixelGrid from 'libs/virtual-pixel-grid'
 
 const PALETTE = Rainbow
     .gradient({
-        0: '#111',
-        16: '#333',
-        32: '#222',
-        64: '#F00',
-        128: '#FF0',
+        0: '#001',
+        16: '#003',
+        32: '#002',
+        64: '#A0F',
+        128: '#F7F',
         220: '#FFF',
         255: '#FFF'
     })
@@ -43,19 +43,19 @@ export function main (pixelContext, frameContext) {
     const { x, y, color } = pixelContext
     // Récupérer les 5 pixels virtuels concernés
     // Celui du "centre" Ainsi que les 4 pixels adjacents
-    const pixSelf = grids.getPixel(x, y)
-    const pixBottom = grids.getPixel(x, y + 1)
-    const pixLeft = grids.getPixel(x - 1, y)
-    const pixRight = grids.getPixel(x + 1, y)
-    const pixTop = grids.getPixel(x, y - 1)
+    const pixSelf = grids.getPixel(x, y + 1)
+    const pixBottom = grids.getPixel(x, y + 2)
+    const pixLeft = grids.getPixel(x - 1, y + 1)
+    const pixRight = grids.getPixel(x + 1, y + 1)
+    const pixTop = grids.getPixel(x, y)
     // Calculer la moyenne des valeurs de ces pixels
     const nMean = (pixSelf + pixLeft + pixRight + pixBottom + pixTop) / 5
     // Petit ajustement aléatoire entropique
     const nEntropy = Math.random() * 2
     // Ajuster la valeur en la diminuant aléatoirement
     // Ne doit pas être en dessous de 0
-    const v = Math.max(0, Math.round(nMean - nEntropy))
+    const v = Math.min(255, Math.max(0, Math.round(nMean - nEntropy)))
 
-    grids.setPixel(x, y - 1, v)
-    pixelContext.color = y > fc.canvas.height - 6 ? 0x000000FF : fc.palette[v]
+    grids.setPixel(x, y, v)
+    pixelContext.color = y > fc.canvas.height - 6 ? 0x01000000 : (0xFF000000 + (v << 16) + (v << 8) + v)
 }

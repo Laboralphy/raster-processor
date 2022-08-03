@@ -7,11 +7,11 @@
  */
 import Rainbow from "@laboralphy/rainbow";
 
-const COL_COUNT = 30
-const ROW_COUNT = 18
-const GRID_POS_X = 30
-const GRID_POS_Y = 50
-const CELL_SIZE = 20
+const COL_COUNT = 32
+const ROW_COUNT = 24
+const GRID_POS_X = 0
+const GRID_POS_Y = 0
+const CELL_SIZE = 10
 const BORDER_SIZE = 2
 
 /**
@@ -51,17 +51,19 @@ export function init (ac) {
     ac.cols = buildCellIndices(GRID_POS_X, COL_COUNT, CELL_SIZE, BORDER_SIZE)
     ac.rows = buildCellIndices(GRID_POS_Y, ROW_COUNT, CELL_SIZE, BORDER_SIZE)
     ac.colors = {
-        white: Rainbow.parse('white'),
-        black: Rainbow.parse('black')
+        white: 0xFFFFFFFF,
+        black: 0xFF000000
     }
     ac.grad = Rainbow
         .spectrum('#000', '#FF0', ROW_COUNT)
         .map(c => Rainbow.parse(c))
+        .map(c => c.a << 24 | c.b << 16 | c.g << 8 | c.r)
 }
 
 function getCellColor (ac, x, y) {
     const time = ac.time
-    const nx = Math.max(0, Math.min(ac.grad.length - 1, y + COL_COUNT - x + time - ROW_COUNT - COL_COUNT))
+    let nx0 = y + COL_COUNT - x + time - ROW_COUNT - COL_COUNT
+    const nx = Math.max(0, Math.min(ac.grad.length - 1, nx0))
     return ac.grad[nx | 0]
 }
 
@@ -69,15 +71,8 @@ export function main (pc, ac) {
     if (pc.y in ac.rows && pc.x in ac.cols) {
         const cx = ac.cols[pc.x]
         const cy = ac.rows[pc.y]
-        const g = getCellColor(ac, cx.cellIndex, cy.cellIndex)
-        pc.color.r = g.r
-        pc.color.g = g.g
-        pc.color.b = g.b
-        pc.color.a = g.a
+        pc.color = getCellColor(ac, cx.cellIndex, cy.cellIndex)
     } else {
-        pc.color.r = ac.colors.black.r
-        pc.color.g = ac.colors.black.g
-        pc.color.b = ac.colors.black.b
-        pc.color.a = ac.colors.black.a
+        pc.color = ac.colors.black
     }
 }

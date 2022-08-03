@@ -1,21 +1,39 @@
 body {
     background-color: #222;
-    font-size: 10px;
+    font-size: 14px;
     color: #DDD;
 }
 
 div.output {
     padding: 0;
-    width: 640px;
+    width: 100%;
+    text-align: center;
 }
 
-div.output > div > canvas {
+div.output canvas {
     margin: 0;
     image-rendering: pixelated;
-    width: 100%;
+    width: 960px;
 }
 
-.menu a {
-    font-family: sans-serif;
-    font-size: 1em;
+.menu {
+    padding: 0.2em;
+}
+
+.menu .index {
+    float: left;
+}
+
+.menu .title {
+    float: left;
+    padding: 0.2em 0.2em 0.2em 2em;
+}
+
+.menu .stop {
+    clear: both;
+}
+
+.menu div.steam-card {
+    margin: 2em;
+    float: left;
 }
