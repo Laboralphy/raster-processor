@@ -184,6 +184,23 @@ div.steam-card > div.sc-stripes > div.sc-bottom > div.sc-logo > img {
     max-height: 100%;
     object-fit: contain;
 }
+
+@keyframes blinker {
+  from { 
+    border-color: #FFF; 
+  }
+  to { 
+    border-color: var(--color-bg-grad-2);
+  }
+}
+
+div.steam-card.flash {
+    border-size: thick;
+    animation-name: blinker;
+    animation-iteration-count: 4;
+    animation-timing-function: linear;
+    animation-duration: 200ms;
+}
 `
         if (!document.getElementById('steam-card-stylesheet')) {
             const oCSS = this.createElement('style', { id: 'steam-card-stylesheet', type: 'text/css' }, sCSS)
@@ -298,7 +315,13 @@ div.steam-card > div.sc-stripes > div.sc-bottom > div.sc-logo > img {
             ])
         ])
         if (click) {
-            oCard.addEventListener('click', click)
+            oCard.addEventListener('click', event => {
+                oCard.classList.add('flash')
+                setTimeout(() => {
+                    oCard.classList.remove('flash')
+                    click(event)
+                }, 700)
+            })
         }
         return oCard
     }

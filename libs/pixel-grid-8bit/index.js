@@ -7,7 +7,7 @@ import ArrayHelper from "libs/array-helper";
  * Par ce moyen, l'écriture de pixels n'altère pas la source des pixels
  * Facilite la réalisation de filtres graphiques à base de matrice de convolution.
  */
-class VirtualPixelGrid {
+class PixelGrid8Bit {
     constructor (nWidth, nHeight) {
         this._width = nWidth
         this._height = nHeight
@@ -22,6 +22,10 @@ class VirtualPixelGrid {
         this._outputGridIndex = 1
         this._outputGrid = this._grids[this._outputGridIndex]
         this._inputGrid = this._grids[this._inputGridIndex]
+        this._lastCM = {
+            original: null,
+            compiled: null
+        }
     }
 
     setPixel (x, y, v) {
@@ -46,12 +50,54 @@ class VirtualPixelGrid {
         }
     }
 
-    swapGrids = () => {
+    swapGrids () {
         this._outputGridIndex = 1 - this._outputGridIndex
         this._inputGridIndex = 1 - this._inputGridIndex
         this._inputGrid = this._grids[this._inputGridIndex]
         this._outputGrid = this._grids[this._outputGridIndex]
     }
+
+    compileConvolution (aMatrix) {
+        if (aMatrix === this._lastCM.original) {
+            return this._lastCM.compiled
+        }
+        const h = aMatrix.length
+        const w = aMatrix[0].length
+        const n = Math.min(w, h)
+        const n2 = Math.floor(n / 2)
+        const a = []
+        for (let yi = 0; yi < n; ++yi) {
+            for (let xi = 0; xi < n; ++xi) {
+                const p = aMatrix[yi][xi]
+                if (p) {
+                    a.push({ x: xi - n2, y: yi - n2, v: p })
+                }
+            }
+        }
+        this._lastCM.compiled = a
+        this._lastCM.original = aMatrix
+        return a
+    }
+
+    convolution (x, y, aMatrix) {
+        const a = this.compileConvolution(aMatrix)
+        let v = 0
+        for (let ai = 0, l = a.length; ai < l; ++ai) {
+            const aai = a[ai]
+            v += aai.v * this.getPixel(x + aai.x, y + aai.y)
+        }
+        return v
+    }
+
+    forEachPixel (pCallback) {
+        const w = this._width
+        const h = this._height
+        for (let y = 0; y < h; ++y) {
+            for (let x = 0; x < w; ++x) {
+                pCallback(this, x, y)
+            }
+        }
+    }
 }
 
-export default VirtualPixelGrid
+export default PixelGrid8Bit

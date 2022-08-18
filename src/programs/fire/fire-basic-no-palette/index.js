@@ -1,14 +1,9 @@
 import Rainbow from '@laboralphy/rainbow'
-import VirtualPixelGrid from 'libs/virtual-pixel-grid'
+import PixelGrid8Bit from 'libs/pixel-grid-8bit'
 
 const PALETTE = Rainbow
     .gradient({
-        0: '#001',
-        16: '#003',
-        32: '#002',
-        64: '#A0F',
-        128: '#F7F',
-        220: '#FFF',
+        0: '#000',
         255: '#FFF'
     })
     .map(sColor => {
@@ -22,7 +17,7 @@ export function init (frameContext) {
     if (!frameContext.init) {
         frameContext.init = true
         frameContext.palette = PALETTE
-        frameContext.grids = new VirtualPixelGrid(width, height)
+        frameContext.grids = new PixelGrid8Bit(width, height)
     }
     for (let x = 0; x < width; x += 4) {
         if (Math.random() > 0.75) {
@@ -35,6 +30,14 @@ export function init (frameContext) {
     frameContext.grids.swapGrids()
 }
 
+const MEAN = [
+    [0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0],
+    [0, 0, 1/5, 0, 0],
+    [0, 1/5, 1/5, 1/5, 0],
+    [0, 0, 1/5, 0, 0]
+]
+
 export function main (pixelContext, frameContext) {
     const fc = frameContext
     // grids est l'outil de manipulation de pixels virtuels
@@ -43,19 +46,14 @@ export function main (pixelContext, frameContext) {
     const { x, y, color } = pixelContext
     // Récupérer les 5 pixels virtuels concernés
     // Celui du "centre" Ainsi que les 4 pixels adjacents
-    const pixSelf = grids.getPixel(x, y + 1)
-    const pixBottom = grids.getPixel(x, y + 2)
-    const pixLeft = grids.getPixel(x - 1, y + 1)
-    const pixRight = grids.getPixel(x + 1, y + 1)
-    const pixTop = grids.getPixel(x, y)
-    // Calculer la moyenne des valeurs de ces pixels
-    const nMean = (pixSelf + pixLeft + pixRight + pixBottom + pixTop) / 5
+    const nMean = grids.convolution(x, y, MEAN)
+
     // Petit ajustement aléatoire entropique
     const nEntropy = Math.random() * 2
     // Ajuster la valeur en la diminuant aléatoirement
     // Ne doit pas être en dessous de 0
-    const v = Math.min(255, Math.max(0, Math.round(nMean - nEntropy)))
+    const v = Math.max(0, Math.round(nMean - nEntropy))
 
     grids.setPixel(x, y, v)
-    pixelContext.color = y > fc.canvas.height - 6 ? 0x01000000 : (0xFF000000 + (v << 16) + (v << 8) + v)
+    pixelContext.color = y > fc.canvas.height - 6 ? 0x000000FF : fc.palette[v]
 }
