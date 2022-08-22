@@ -37,8 +37,9 @@ export function init (frameContext) {
 
     const bline = n => Bresenham.line(aPos[n].x + w2, aPos[n].y + h2, aPos[(n + 2) % 5].x + w2, aPos[(n + 2) % 5].y + h2, (x, y, n) => {
         if (n % 3 === 0) {
-            const c = Math.random() > 0.75 ? 255 : Math.floor(Math.random() * 64)
-            frameContext.grids.rect(x, y, 4, 4, c)
+            // const c = Math.random() > 0.75 ? 255 : Math.floor(Math.random() * 64 + 128)
+            const c = Math.sin(n) * 64 + 64 + Math.random() * 128
+            frameContext.grids.rect(x, y, 4, 4, Math.floor(c))
         }
     })
 
